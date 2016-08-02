@@ -2,7 +2,7 @@
 #
 #
 
-import sys, argparse, logging, re
+import sys, argparse, logging, re, ntpath
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from collections import defaultdict
 
@@ -11,9 +11,15 @@ from collections import defaultdict
 def main(args):
 
     burstTag = '{(.+?)}'
+
     if args.tag is not None:
         burstTag = args.tag
+
     print "Using Burst Tag: ", burstTag, ' on ', args.inputpdf
+    outputpath = ntpath.dirname(args.inputpdf)
+    if args.output is not None:
+        outputpath = args.output
+    filename = ntpath.basename(args.inputpdf)
     input1 = PdfFileReader(open(args.inputpdf, 'rb'))
     previousTag = "TAGNOTFOUND"
     currentTag = ""
@@ -33,7 +39,7 @@ def main(args):
         output = PdfFileWriter()
         for outpage in pg:
             output.addPage(outpage)
-        outputStream = file(tag + '-' + args.inputpdf, "wb")
+        outputStream = file(outputpath + '\\' + tag + '-' + filename, "wb")
         output.write(outputStream)
 
 # Standard boilerplate to call the main() function to begin
@@ -47,11 +53,17 @@ if __name__ == '__main__':
     parser.add_argument(
         "inputpdf",
         help="PDF file you want to burst",
-        metavar="ARG")
+        metavar="Input.pdf")
     parser.add_argument(
         "-t",
         "--tag",
         help='regex representation, including a match group, to use as burst tag.  default will be {(.+?)}',
-        metavar='ARG')
+        metavar='bursttag')
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        help='location to place output',
+        metavar='outputpath')
     args = parser.parse_args()
     main(args)
